@@ -33,16 +33,15 @@ public class DanhSachHocSinh {
 		danhSach.removeIf(x -> x.maHocSinh.compareTo(mhs) == 0);
 	}
 
-	void danhSachHocSinhTheoMHS(boolean tangDan) {
+	void sapXepHocSinhTheoMHS(boolean tangDan) {
 		danhSach.sort(new Comparator<HocSinh>() {
 			public int compare(HocSinh c1, HocSinh c2) {
 				return tangDan ? c1.maHocSinh.compareTo(c2.maHocSinh) : c2.maHocSinh.compareTo(c1.maHocSinh);
 			}
 		});
-		System.out.println(this.toString());
 	}
 
-	void danhSachHocSinhTheoDiem(boolean tangDan) {
+	void sapXepHocSinhTheoDiem(boolean tangDan) {
 		danhSach.sort(new Comparator<HocSinh>() {
 			public int compare(HocSinh c1, HocSinh c2) {
 				if (c1.diem < c2.diem)
@@ -52,7 +51,6 @@ public class DanhSachHocSinh {
 				return 0;
 			}
 		});
-		System.out.println(this.toString());
 	}
 
 	public String toString() {

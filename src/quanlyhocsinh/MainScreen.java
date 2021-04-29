@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import javax.swing.*;
+import javax.swing.event.*;
 import javax.swing.table.DefaultTableModel;
 
 @SuppressWarnings("serial")
@@ -13,11 +14,10 @@ public class MainScreen extends JFrame implements ActionListener {
 	static JTable dshsTable;
 	JScrollPane dshsScrollPane;
 
-	JRadioButton tangDan;
-	JRadioButton giamDan;
-
-	JRadioButton mhs;
-	JRadioButton diem;
+	JRadioButton tangDanRB;
+	JRadioButton giamDanRB;
+	JRadioButton mhsRB;
+	JRadioButton diemRB;
 
 	public MainScreen() throws IOException {
 		JPanel mainContent = new JPanel(new GridBagLayout());
@@ -35,6 +35,42 @@ public class MainScreen extends JFrame implements ActionListener {
 		dshsTable = new JTable(data, columnNames);
 		dshsTable.setFillsViewportHeight(true);
 		dshsTable.setRowHeight(30);
+		dshsTable.getDefaultEditor(Object.class).addCellEditorListener(new CellEditorListener() {
+			@Override
+			public void editingStopped(ChangeEvent e) {
+				int selectedRow = dshsTable.getSelectedRow();
+				int selectedColumn = dshsTable.getSelectedColumn();
+				HocSinh editedHocSinh = Main.danhSachHocSinh
+						.findHocSinh(dshsTable.getValueAt(selectedRow, 0).toString());
+
+				Object editedData = dshsTable.getValueAt(selectedRow, selectedColumn);
+				switch (selectedColumn) {
+				case 0:
+					editedHocSinh.maHocSinh = editedData.toString();
+					break;
+				case 1:
+					editedHocSinh.tenHocSinh = editedData.toString();
+					break;
+				case 2:
+					editedHocSinh.diem = Float.parseFloat(editedData.toString());
+					break;
+				case 3:
+					editedHocSinh.hinhAnh = editedData.toString();
+					break;
+				case 4:
+					editedHocSinh.diaChi = editedData.toString();
+					break;
+				case 5:
+					editedHocSinh.ghiChu = editedData.toString();
+					break;
+				}
+			}
+
+			@Override
+			public void editingCanceled(ChangeEvent e) {
+			}
+		});
+
 		dshsScrollPane = new JScrollPane(dshsTable);
 		c = GridBagPos(0, 0, 1, 2);
 		c.insets = new Insets(20, 15, 0, 0);
@@ -74,24 +110,26 @@ public class MainScreen extends JFrame implements ActionListener {
 
 		// **************** SHOWLIST PANEL *****************
 		JPanel showDSHSPanel = new JPanel(new GridBagLayout());
-		JLabel xemDSHSLabel = new JLabel("Xem danh sách học sinh");
+		JLabel xemDSHSLabel = new JLabel("Sắp xếp danh sách học sinh");
 
 		JLabel thuTuLabel = new JLabel("Thứ tự");
-		tangDan = new JRadioButton("Tăng dần");
-		giamDan = new JRadioButton("Giảm dần");
+		tangDanRB = new JRadioButton("Tăng dần");
+		giamDanRB = new JRadioButton("Giảm dần");
 		ButtonGroup thuTuGroup = new ButtonGroup();
-		thuTuGroup.add(tangDan);
-		thuTuGroup.add(giamDan);
+		thuTuGroup.add(tangDanRB);
+		thuTuGroup.add(giamDanRB);
+		thuTuGroup.setSelected(tangDanRB.getModel(), true);
 
 		JLabel xepTheoLabel = new JLabel("Xếp theo");
-		mhs = new JRadioButton("Mã học sinh");
-		diem = new JRadioButton("Điểm");
+		mhsRB = new JRadioButton("Mã học sinh");
+		diemRB = new JRadioButton("Điểm");
 		ButtonGroup xepTheoGroup = new ButtonGroup();
-		xepTheoGroup.add(mhs);
-		xepTheoGroup.add(diem);
+		xepTheoGroup.add(mhsRB);
+		xepTheoGroup.add(diemRB);
+		xepTheoGroup.setSelected(mhsRB.getModel(), true);
 
-		JButton xemButton = new JButton("Xem");
-		xemButton.setActionCommand("xem");
+		JButton xemButton = new JButton("Sắp xếp");
+		xemButton.setActionCommand("sort");
 		xemButton.addActionListener(this);
 
 		c = GridBagPos(0, 0, 3, 1);
@@ -101,15 +139,15 @@ public class MainScreen extends JFrame implements ActionListener {
 		c = GridBagPos(1, 1, 1, 1);
 		c.insets = new Insets(0, 5, 0, 0);
 		c.anchor = GridBagConstraints.WEST;
-		showDSHSPanel.add(tangDan, c);
-		showDSHSPanel.add(giamDan, GridBagPos(2, 1, 1, 1));
+		showDSHSPanel.add(tangDanRB, c);
+		showDSHSPanel.add(giamDanRB, GridBagPos(2, 1, 1, 1));
 
 		showDSHSPanel.add(xepTheoLabel, GridBagPos(0, 2, 1, 1));
 		c = GridBagPos(1, 2, 1, 1);
 		c.insets = new Insets(0, 5, 0, 0);
 		c.anchor = GridBagConstraints.WEST;
-		showDSHSPanel.add(mhs, c);
-		showDSHSPanel.add(diem, GridBagPos(2, 2, 1, 1));
+		showDSHSPanel.add(mhsRB, c);
+		showDSHSPanel.add(diemRB, GridBagPos(2, 2, 1, 1));
 		c = GridBagPos(0, 3, 3, 1);
 		c.insets = new Insets(10, 0, 0, 0);
 		showDSHSPanel.add(xemButton, c);
@@ -186,7 +224,15 @@ public class MainScreen extends JFrame implements ActionListener {
 			new AddScreen();
 			break;
 		}
+		case "sort": {
+			if (mhsRB.isSelected())
+				Main.danhSachHocSinh.sapXepHocSinhTheoMHS(tangDanRB.isSelected());
+			else
+				Main.danhSachHocSinh.sapXepHocSinhTheoDiem(tangDanRB.isSelected());
 
+			UpdateDSHSTable();
+			break;
+		}
 		case "import": {
 			JFileChooser jfc = new JFileChooser();
 			jfc.setDialogTitle("Import danh sách học sinh từ file csv");
@@ -195,14 +241,12 @@ public class MainScreen extends JFrame implements ActionListener {
 
 			if (jfc.getSelectedFile() != null) {
 				String fileName = jfc.getSelectedFile().getAbsolutePath();
-				if (FileManager.fileExist(fileName)) {
-					try {
-						Main.danhSachHocSinh = FileManager.importFromCSV(fileName);
-						UpdateDSHSTable();
-						dshsTable.setRowSelectionInterval(0, 0);
-					} catch (IOException e1) {
+				try {
+					Main.danhSachHocSinh = FileManager.importFromCSV(fileName);
+					UpdateDSHSTable();
+					dshsTable.setRowSelectionInterval(0, 0);
+				} catch (IOException e1) {
 
-					}
 				}
 			}
 			break;
@@ -213,11 +257,13 @@ public class MainScreen extends JFrame implements ActionListener {
 			jfc.showSaveDialog(this);
 			jfc.setVisible(true);
 
-			String fileName = jfc.getSelectedFile().getAbsolutePath();
-			try {
-				FileManager.exportToCSV(fileName, Main.danhSachHocSinh);
-			} catch (IOException e1) {
-				e1.printStackTrace();
+			if (jfc.getSelectedFile() != null) {
+				String fileName = jfc.getSelectedFile().getAbsolutePath();
+				try {
+					FileManager.exportToCSV(fileName, Main.danhSachHocSinh);
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
 			}
 			break;
 		}
