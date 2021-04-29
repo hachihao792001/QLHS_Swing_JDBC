@@ -21,7 +21,7 @@ public class FileManager {
 		dshs.danhSach = new ArrayList<HocSinh>();
 		String line = reader.readLine();
 		try {
-			while (!line.isEmpty() && line != null) {
+			while (line != null && !line.isEmpty()) {
 				dshs.danhSach.add(new HocSinh(line));
 				line = reader.readLine();
 			}

@@ -12,7 +12,9 @@ public class Main {
 	static DanhSachHocSinh danhSachHocSinh = new DanhSachHocSinh();
 
 	public static void main(String[] args) throws IOException {
-		//DatabaseManager databaseManager = new DatabaseManager();
+		DatabaseManager.init();
+		danhSachHocSinh = DatabaseManager.getDSHS();
+
 		createAndShowUI();
 
 	}

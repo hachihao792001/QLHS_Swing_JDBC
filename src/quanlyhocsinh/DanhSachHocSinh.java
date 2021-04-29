@@ -9,8 +9,25 @@ public class DanhSachHocSinh {
 		danhSach = new ArrayList<HocSinh>();
 	}
 
-	void addHocSinh(String maHS, String ten, float diem, String duongDanHinh, String diaChi, String ghiChu) {
-		danhSach.add(new HocSinh(maHS, ten, diem, duongDanHinh, diaChi, ghiChu));
+	void merge(DanhSachHocSinh otherDSHS) {
+		for (HocSinh hs : otherDSHS.danhSach) {
+			if (findHocSinh(hs.maHocSinh) == null)
+				danhSach.add(hs);
+		}
+	}
+
+	Object[][] toObjectMatrix() {
+		Object[][] data = new Object[danhSach.size()][6];
+		for (int i = 0; i < data.length; i++) {
+			data[i][0] = danhSach.get(i).maHocSinh;
+			data[i][1] = danhSach.get(i).tenHocSinh;
+			data[i][2] = danhSach.get(i).diem;
+			data[i][3] = danhSach.get(i).hinhAnh;
+			data[i][4] = danhSach.get(i).diaChi;
+			data[i][5] = danhSach.get(i).ghiChu;
+		}
+
+		return data;
 	}
 
 	HocSinh findHocSinh(String mhs) {

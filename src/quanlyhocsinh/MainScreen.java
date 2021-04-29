@@ -6,13 +6,13 @@ import java.io.*;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
 
 @SuppressWarnings("serial")
 public class MainScreen extends JFrame implements ActionListener {
 
 	static String[] columnNames = { "Mã học sinh", "Tên học sinh", "Điểm", "Hình ảnh", "Địa chỉ", "Ghi chú" };
 	static JTable dshsTable;
-	JScrollPane dshsScrollPane;
 
 	JRadioButton tangDanRB;
 	JRadioButton giamDanRB;
@@ -31,8 +31,7 @@ public class MainScreen extends JFrame implements ActionListener {
 		 * 9.6, "d.png", "địa chỉ 5", "ghi chú 5" } };
 		 */
 
-		Object[][] data = new Object[0][6];
-		dshsTable = new JTable(data, columnNames);
+		dshsTable = new JTable(Main.danhSachHocSinh.toObjectMatrix(), columnNames);
 		dshsTable.setFillsViewportHeight(true);
 		dshsTable.setRowHeight(30);
 		dshsTable.getDefaultEditor(Object.class).addCellEditorListener(new CellEditorListener() {
@@ -40,13 +39,21 @@ public class MainScreen extends JFrame implements ActionListener {
 			public void editingStopped(ChangeEvent e) {
 				int selectedRow = dshsTable.getSelectedRow();
 				int selectedColumn = dshsTable.getSelectedColumn();
-				HocSinh editedHocSinh = Main.danhSachHocSinh
-						.findHocSinh(dshsTable.getValueAt(selectedRow, 0).toString());
+				String oldMHS = Main.danhSachHocSinh.danhSach.get(selectedRow).maHocSinh;
+				HocSinh editedHocSinh = Main.danhSachHocSinh.findHocSinh(oldMHS);
 
 				Object editedData = dshsTable.getValueAt(selectedRow, selectedColumn);
 				switch (selectedColumn) {
 				case 0:
-					editedHocSinh.maHocSinh = editedData.toString();
+					if (!editedData.toString().equals(oldMHS)) {
+						if (Main.danhSachHocSinh.findHocSinh(editedData.toString()) == null)
+							editedHocSinh.maHocSinh = editedData.toString();
+						else {
+							JOptionPane.showMessageDialog(mainContent, "Mã học sinh đã tồn tại", "Không thể cập nhật",
+									JOptionPane.WARNING_MESSAGE, null);
+							UpdateDSHSTable();
+						}
+					}
 					break;
 				case 1:
 					editedHocSinh.tenHocSinh = editedData.toString();
@@ -64,6 +71,8 @@ public class MainScreen extends JFrame implements ActionListener {
 					editedHocSinh.ghiChu = editedData.toString();
 					break;
 				}
+
+				DatabaseManager.updateHocSinh(oldMHS, editedHocSinh, selectedColumn);
 			}
 
 			@Override
@@ -71,16 +80,15 @@ public class MainScreen extends JFrame implements ActionListener {
 			}
 		});
 
-		dshsScrollPane = new JScrollPane(dshsTable);
 		c = GridBagPos(0, 0, 1, 2);
 		c.insets = new Insets(20, 15, 0, 0);
-		mainContent.add(dshsScrollPane, c);
+		mainContent.add(new JScrollPane(dshsTable), c);
 
 		// ****************** BUTTONS ******************
 		JPanel buttonsPanel = new JPanel(new FlowLayout());
 
 		JButton detailsButton;
-		detailsButton = new JButton("Chi tiết học sinh");
+		detailsButton = new JButton("Thông tin chi tiết");
 		detailsButton.setActionCommand("details");
 		detailsButton.addActionListener(this);
 		buttonsPanel.add(detailsButton);
@@ -109,8 +117,8 @@ public class MainScreen extends JFrame implements ActionListener {
 		JPanel sidePanel = new JPanel(sidePanelGrid);
 
 		// **************** SHOWLIST PANEL *****************
-		JPanel showDSHSPanel = new JPanel(new GridBagLayout());
-		JLabel xemDSHSLabel = new JLabel("Sắp xếp danh sách học sinh");
+		JPanel sortDSHSPanel = new JPanel(new GridBagLayout());
+		JLabel sortDSHSLabel = new JLabel("Sắp xếp danh sách học sinh");
 
 		JLabel thuTuLabel = new JLabel("Thứ tự");
 		tangDanRB = new JRadioButton("Tăng dần");
@@ -128,32 +136,34 @@ public class MainScreen extends JFrame implements ActionListener {
 		xepTheoGroup.add(diemRB);
 		xepTheoGroup.setSelected(mhsRB.getModel(), true);
 
-		JButton xemButton = new JButton("Sắp xếp");
-		xemButton.setActionCommand("sort");
-		xemButton.addActionListener(this);
+		JButton sortButton = new JButton("Sắp xếp");
+		sortButton.setActionCommand("sort");
+		sortButton.addActionListener(this);
 
 		c = GridBagPos(0, 0, 3, 1);
 		c.insets = new Insets(0, 0, 10, 0);
-		showDSHSPanel.add(xemDSHSLabel, c);
-		showDSHSPanel.add(thuTuLabel, GridBagPos(0, 1, 1, 1));
+		sortDSHSPanel.add(sortDSHSLabel, c);
+
+		sortDSHSPanel.add(xepTheoLabel, GridBagPos(0, 1, 1, 1));
 		c = GridBagPos(1, 1, 1, 1);
 		c.insets = new Insets(0, 5, 0, 0);
 		c.anchor = GridBagConstraints.WEST;
-		showDSHSPanel.add(tangDanRB, c);
-		showDSHSPanel.add(giamDanRB, GridBagPos(2, 1, 1, 1));
+		sortDSHSPanel.add(mhsRB, c);
+		sortDSHSPanel.add(diemRB, GridBagPos(2, 1, 1, 1));
 
-		showDSHSPanel.add(xepTheoLabel, GridBagPos(0, 2, 1, 1));
+		sortDSHSPanel.add(thuTuLabel, GridBagPos(0, 2, 1, 1));
 		c = GridBagPos(1, 2, 1, 1);
 		c.insets = new Insets(0, 5, 0, 0);
 		c.anchor = GridBagConstraints.WEST;
-		showDSHSPanel.add(mhsRB, c);
-		showDSHSPanel.add(diemRB, GridBagPos(2, 2, 1, 1));
+		sortDSHSPanel.add(tangDanRB, c);
+		sortDSHSPanel.add(giamDanRB, GridBagPos(2, 2, 1, 1));
+
 		c = GridBagPos(0, 3, 3, 1);
 		c.insets = new Insets(10, 0, 0, 0);
-		showDSHSPanel.add(xemButton, c);
-		showDSHSPanel.setBorder(BorderFactory.createLineBorder(Color.black));
+		sortDSHSPanel.add(sortButton, c);
+		sortDSHSPanel.setBorder(BorderFactory.createLineBorder(Color.black));
 
-		sidePanel.add(showDSHSPanel);
+		sidePanel.add(sortDSHSPanel);
 
 		// ******************** CSV Panel ********************
 		JPanel csvPanel = new JPanel();
@@ -187,8 +197,9 @@ public class MainScreen extends JFrame implements ActionListener {
 		c.insets = new Insets(20, 15, 0, 15);
 		mainContent.add(sidePanel, c);
 
-		this.setTitle("Thông tin");
+		this.setTitle("Quản lý học sinh");
 		this.setContentPane(mainContent);
+		this.setResizable(false);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.pack();
 		this.setVisible(true);
@@ -216,6 +227,7 @@ public class MainScreen extends JFrame implements ActionListener {
 				if (confirmDelete == JOptionPane.YES_OPTION) {
 					Main.danhSachHocSinh.removeHocSinh(selectedHocSinh.maHocSinh);
 					UpdateDSHSTable();
+					DatabaseManager.removeHocSinh(selectedHocSinh.maHocSinh);
 				}
 			}
 			break;
@@ -240,11 +252,22 @@ public class MainScreen extends JFrame implements ActionListener {
 			jfc.setVisible(true);
 
 			if (jfc.getSelectedFile() != null) {
+				String[] options = { "Thêm", "Ghi đè" };
+				int choice = JOptionPane.showOptionDialog(this,
+						"Bạn muốn thêm các học sinh vào danh sách có sẵn hoặc ghi đè thành danh sách mới?",
+						"Thêm hay ghi đè", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options,
+						options[0]);
+
 				String fileName = jfc.getSelectedFile().getAbsolutePath();
 				try {
-					Main.danhSachHocSinh = FileManager.importFromCSV(fileName);
+					if (choice == 0)
+						Main.danhSachHocSinh.merge(FileManager.importFromCSV(fileName));
+					else
+						Main.danhSachHocSinh = FileManager.importFromCSV(fileName);
+
 					UpdateDSHSTable();
 					dshsTable.setRowSelectionInterval(0, 0);
+					DatabaseManager.setDSHS(Main.danhSachHocSinh);
 				} catch (IOException e1) {
 
 				}
@@ -272,17 +295,7 @@ public class MainScreen extends JFrame implements ActionListener {
 	}
 
 	public static void UpdateDSHSTable() {
-		Object[][] data = new Object[Main.danhSachHocSinh.danhSach.size()][6];
-		for (int i = 0; i < data.length; i++) {
-			data[i][0] = Main.danhSachHocSinh.danhSach.get(i).maHocSinh;
-			data[i][1] = Main.danhSachHocSinh.danhSach.get(i).tenHocSinh;
-			data[i][2] = Main.danhSachHocSinh.danhSach.get(i).diem;
-			data[i][3] = Main.danhSachHocSinh.danhSach.get(i).hinhAnh;
-			data[i][4] = Main.danhSachHocSinh.danhSach.get(i).diaChi;
-			data[i][5] = Main.danhSachHocSinh.danhSach.get(i).ghiChu;
-		}
-
-		DefaultTableModel model = new DefaultTableModel(data, columnNames);
+		TableModel model = new DefaultTableModel(Main.danhSachHocSinh.toObjectMatrix(), columnNames);
 		dshsTable.setModel(model);
 	}
 

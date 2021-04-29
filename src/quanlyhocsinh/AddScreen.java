@@ -32,13 +32,15 @@ public class AddScreen extends JFrame {
 								JOptionPane.WARNING_MESSAGE, null);
 					} else {
 						newHocSinh.tenHocSinh = ((JTextField) tenLine.getComponent(1)).getText();
-						newHocSinh.diem = Float.parseFloat(((JTextField) diemLine.getComponent(1)).getText());
+						String diemText = ((JTextField) diemLine.getComponent(1)).getText();
+						newHocSinh.diem = diemText.isEmpty() ? 0 : Float.parseFloat(diemText);
 						newHocSinh.hinhAnh = ((JTextField) hinhAnhLine.getComponent(1)).getText();
 						newHocSinh.diaChi = ((JTextField) diaChiLine.getComponent(1)).getText();
 						newHocSinh.ghiChu = ((JTextField) ghiChuLine.getComponent(1)).getText();
 
 						Main.danhSachHocSinh.danhSach.add(newHocSinh);
 						MainScreen.UpdateDSHSTable();
+						DatabaseManager.addHocSinh(newHocSinh);
 
 						dispose();
 					}
@@ -56,6 +58,7 @@ public class AddScreen extends JFrame {
 
 		this.setTitle("Thêm học sinh");
 		this.setContentPane(addContent);
+		this.setResizable(false);
 		this.pack();
 		this.setVisible(true);
 	}

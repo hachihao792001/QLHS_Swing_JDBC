@@ -11,19 +11,20 @@ public class DetailsScreen extends JFrame {
 	DetailsScreen(HocSinh selectedHocSinh) {
 		JPanel detailsContent = new JPanel(new GridBagLayout());
 
-		BufferedImage hsImage = null;
+		Image scaledHSImage = null;
 		try {
-			hsImage = ImageIO.read(new File(selectedHocSinh.hinhAnh));
+			BufferedImage hsImage = ImageIO.read(new File(selectedHocSinh.hinhAnh));
+			scaledHSImage = hsImage.getScaledInstance(100, 100, Image.SCALE_SMOOTH);
 		} catch (Exception io) {
 		}
 
 		JLabel hsImageLabel;
-		if (hsImage != null)
-			hsImageLabel = new JLabel(new ImageIcon(hsImage));
-		else {
+		if (scaledHSImage != null)
+			hsImageLabel = new JLabel(new ImageIcon(scaledHSImage));
+		else
 			hsImageLabel = new JLabel("Không có hình", SwingConstants.CENTER);
-			hsImageLabel.setPreferredSize(new Dimension(100, 100));
-		}
+		hsImageLabel.setPreferredSize(new Dimension(100, 100));
+
 		hsImageLabel.setBorder(BorderFactory.createLineBorder(Color.black));
 
 		GridBagConstraints c = MainScreen.GridBagPos(0, 0, 1, 1);
@@ -59,6 +60,7 @@ public class DetailsScreen extends JFrame {
 
 		this.setTitle("Thông tin học sinh");
 		this.setContentPane(detailsContent);
+		this.setResizable(false);
 		this.pack();
 		this.setVisible(true);
 	}
