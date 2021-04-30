@@ -1,26 +1,17 @@
 package quanlyhocsinh;
 
 import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import javax.imageio.ImageIO;
 import javax.swing.*;
 
 @SuppressWarnings("serial")
-public class DetailsScreen extends JFrame {
+public class DetailsScreen extends JDialog {
 	DetailsScreen(HocSinh selectedHocSinh) {
 		JPanel detailsContent = new JPanel(new GridBagLayout());
 
-		Image scaledHSImage = null;
-		try {
-			BufferedImage hsImage = ImageIO.read(new File(selectedHocSinh.hinhAnh));
-			scaledHSImage = hsImage.getScaledInstance(100, 100, Image.SCALE_SMOOTH);
-		} catch (Exception io) {
-		}
-
+		ImageIcon hsImage = selectedHocSinh.hsImage;
 		JLabel hsImageLabel;
-		if (scaledHSImage != null)
-			hsImageLabel = new JLabel(new ImageIcon(scaledHSImage));
+		if (hsImage != null)
+			hsImageLabel = new JLabel(hsImage);
 		else
 			hsImageLabel = new JLabel("Không có hình", SwingConstants.CENTER);
 		hsImageLabel.setPreferredSize(new Dimension(100, 100));
@@ -61,6 +52,7 @@ public class DetailsScreen extends JFrame {
 		this.setTitle("Thông tin học sinh");
 		this.setContentPane(detailsContent);
 		this.setResizable(false);
+		this.setModalityType(DEFAULT_MODALITY_TYPE);
 		this.pack();
 		this.setVisible(true);
 	}

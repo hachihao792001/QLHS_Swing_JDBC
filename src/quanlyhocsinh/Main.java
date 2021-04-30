@@ -5,7 +5,11 @@ import javax.swing.*;
 
 public class Main {
 	static void createAndShowUI() throws IOException {
-		JFrame.setDefaultLookAndFeelDecorated(true);
+		try {
+			UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		new MainScreen();
 	}
 

@@ -1,7 +1,6 @@
 package quanlyhocsinh;
 
 import java.io.*;
-import java.util.ArrayList;
 
 public class FileManager {
 
@@ -12,17 +11,16 @@ public class FileManager {
 	public static DanhSachHocSinh importFromCSV(String fileName) throws IOException {
 		BufferedReader reader;
 		try {
-			reader = new BufferedReader(new FileReader(new File(fileName)));
+			reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileName), "UTF-8"));
 		} catch (FileNotFoundException e) {
 			return null;
 		}
 
 		DanhSachHocSinh dshs = new DanhSachHocSinh();
-		dshs.danhSach = new ArrayList<HocSinh>();
 		String line = reader.readLine();
 		try {
 			while (line != null && !line.isEmpty()) {
-				dshs.danhSach.add(new HocSinh(line));
+				dshs.addHocSinh(new HocSinh(line));
 				line = reader.readLine();
 			}
 		} catch (Exception num) {
@@ -34,7 +32,8 @@ public class FileManager {
 	}
 
 	public static void exportToCSV(String fileName, DanhSachHocSinh dshs) throws IOException {
-		BufferedWriter writer = new BufferedWriter(new FileWriter(new File(fileName)));
+		BufferedWriter writer = new BufferedWriter(
+				new OutputStreamWriter(new FileOutputStream(new File(fileName)), "UTF-8"));
 		writer.write(dshs.toString());
 		writer.close();
 	}

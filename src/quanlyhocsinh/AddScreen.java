@@ -8,7 +8,7 @@ import java.awt.event.ActionListener;
 import javax.swing.*;
 
 @SuppressWarnings("serial")
-public class AddScreen extends JFrame {
+public class AddScreen extends JDialog {
 	AddScreen() {
 		JPanel addContent = new JPanel();
 		addContent.setLayout(new BoxLayout(addContent, BoxLayout.Y_AXIS));
@@ -28,21 +28,30 @@ public class AddScreen extends JFrame {
 				newHocSinh.maHocSinh = ((JTextField) mhsLine.getComponent(1)).getText();
 				if (!newHocSinh.maHocSinh.isEmpty()) {
 					if (Main.danhSachHocSinh.findHocSinh(newHocSinh.maHocSinh) != null) {
-						JOptionPane.showMessageDialog(addContent, "Mã học sinh đã tồn tại", "Không thể thêm",
+						JOptionPane.showMessageDialog(addButton, "Mã học sinh đã tồn tại", "Không thể thêm",
 								JOptionPane.WARNING_MESSAGE, null);
 					} else {
 						newHocSinh.tenHocSinh = ((JTextField) tenLine.getComponent(1)).getText();
-						String diemText = ((JTextField) diemLine.getComponent(1)).getText();
-						newHocSinh.diem = diemText.isEmpty() ? 0 : Float.parseFloat(diemText);
-						newHocSinh.hinhAnh = ((JTextField) hinhAnhLine.getComponent(1)).getText();
-						newHocSinh.diaChi = ((JTextField) diaChiLine.getComponent(1)).getText();
-						newHocSinh.ghiChu = ((JTextField) ghiChuLine.getComponent(1)).getText();
+						try {
 
-						Main.danhSachHocSinh.danhSach.add(newHocSinh);
-						MainScreen.UpdateDSHSTable();
-						DatabaseManager.addHocSinh(newHocSinh);
+							newHocSinh.diem = Float.parseFloat(((JTextField) diemLine.getComponent(1)).getText());
+							newHocSinh.hinhAnh = ((JTextField) hinhAnhLine.getComponent(1)).getText();
+							newHocSinh.diaChi = ((JTextField) diaChiLine.getComponent(1)).getText();
+							newHocSinh.ghiChu = ((JTextField) ghiChuLine.getComponent(1)).getText();
 
-						dispose();
+							Main.danhSachHocSinh.addHocSinh(newHocSinh);
+							MainScreen.UpdateDSHSTable();
+							DatabaseManager.addHocSinh(newHocSinh);
+
+							JOptionPane.showMessageDialog(addContent, "Thêm học sinh thành công!", "Thông báo",
+									JOptionPane.INFORMATION_MESSAGE);
+							dispose();
+
+						} catch (NumberFormatException n) {
+							JOptionPane.showMessageDialog(addContent, "Điểm phải là 1 số thập phân", "Không thể thêm",
+									JOptionPane.WARNING_MESSAGE, null);
+						}
+
 					}
 				}
 			}
@@ -58,7 +67,9 @@ public class AddScreen extends JFrame {
 
 		this.setTitle("Thêm học sinh");
 		this.setContentPane(addContent);
+		this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		this.setResizable(false);
+		this.setModalityType(DEFAULT_MODALITY_TYPE);
 		this.pack();
 		this.setVisible(true);
 	}

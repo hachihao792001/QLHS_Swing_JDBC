@@ -1,11 +1,19 @@
 package quanlyhocsinh;
 
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.File;
+
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+
 public class HocSinh {
 	public String maHocSinh;
 	public String tenHocSinh;
 	public float diem;
 	public String hinhAnh;
 	public String diaChi, ghiChu;
+	public ImageIcon hsImage;
 
 	public HocSinh() {
 	}
@@ -35,5 +43,18 @@ public class HocSinh {
 	public String toString() {
 		return this.maHocSinh + ", " + this.tenHocSinh + ", " + this.diem + ", " + this.hinhAnh + ", " + this.diaChi
 				+ ", " + this.ghiChu;
+	}
+
+	public void preprocesImage() {
+		Image scaledImage = null;
+		try {
+			BufferedImage img = ImageIO.read(new File(hinhAnh));
+			scaledImage = img.getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+		} catch (Exception io) {
+		}
+		if (scaledImage == null)
+			hsImage = null;
+		else
+			hsImage = new ImageIcon(scaledImage);
 	}
 }

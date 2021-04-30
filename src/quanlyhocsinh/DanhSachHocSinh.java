@@ -3,7 +3,7 @@ package quanlyhocsinh;
 import java.util.*;
 
 public class DanhSachHocSinh {
-	List<HocSinh> danhSach;
+	private List<HocSinh> danhSach;
 
 	public DanhSachHocSinh() {
 		danhSach = new ArrayList<HocSinh>();
@@ -29,6 +29,11 @@ public class DanhSachHocSinh {
 
 		return data;
 	}
+	
+	void addHocSinh(HocSinh hs) {
+		hs.preprocesImage();
+		danhSach.add(hs);
+	}
 
 	HocSinh findHocSinh(String mhs) {
 		for (int i = 0; i < danhSach.size(); i++)
@@ -37,13 +42,14 @@ public class DanhSachHocSinh {
 		return null;
 	}
 
-	void updateHocSinh(HocSinh newHS) {
+	void updateHocSinh(String mhs, HocSinh newHS) {
 		int i;
 		for (i = 0; i < danhSach.size(); i++)
-			if (danhSach.get(i).maHocSinh.compareTo(newHS.maHocSinh) == 0)
+			if (danhSach.get(i).maHocSinh.compareTo(mhs) == 0)
 				break;
 
 		danhSach.set(i, newHS);
+		newHS.preprocesImage();
 	}
 
 	void removeHocSinh(String mhs) {
@@ -68,6 +74,14 @@ public class DanhSachHocSinh {
 				return 0;
 			}
 		});
+	}
+	
+	List<HocSinh> getDanhSach(){
+		return danhSach;
+	}
+	
+	HocSinh getIndex(int i) {
+		return danhSach.get(i);
 	}
 
 	public String toString() {

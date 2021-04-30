@@ -4,9 +4,7 @@ import java.sql.*;
 
 public class DatabaseManager {
 	static final String JDBC_DRIVER = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
-	static final String DB_URL = "jdbc:sqlserver://localhost:1433;";
-	static final String USER = "hao";
-	static final String PASS = "password1";
+	static final String DB_URL = "jdbc:sqlserver://localhost:1433;integratedSecurity=true";
 
 	static Connection con = null;
 
@@ -16,7 +14,7 @@ public class DatabaseManager {
 			st = con.prepareStatement("DELETE FROM HOCSINH");
 			st.execute();
 
-			for (HocSinh hs : dshs.danhSach)
+			for (HocSinh hs : dshs.getDanhSach())
 				addHocSinh(hs);
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -39,7 +37,7 @@ public class DatabaseManager {
 				hs.diaChi = rs.getNString("DIACHI");
 				hs.ghiChu = rs.getNString("GHICHU");
 
-				dshs.danhSach.add(hs);
+				dshs.addHocSinh(hs);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -142,7 +140,7 @@ public class DatabaseManager {
 	public static void init() {
 		try {
 			Class.forName(JDBC_DRIVER);
-			con = DriverManager.getConnection(DB_URL, USER, PASS);
+			con = DriverManager.getConnection(DB_URL);
 
 			PreparedStatement st;
 			if (!checkDBExists("QLHS")) {
@@ -158,25 +156,6 @@ public class DatabaseManager {
 						+ "	DIACHI NVARCHAR(50),\r\n" + "	GHICHU NVARCHAR(50)\r\n" + ")");
 				st.execute();
 			}
-
-			/*
-			 * PreparedStatement st = con.prepareStatement("select * from GIAOVIEN");
-			 * 
-			 * ResultSet rs = st.executeQuery();
-			 * 
-			 * while (rs.next()) { int maGV = rs.getInt("MAGV"); String hoTen =
-			 * rs.getNString("HOTEN"); int luong = rs.getInt("LUONG"); String phai =
-			 * rs.getString("PHAI"); String ngSinh = rs.getString("NGSINH"); String diaChi =
-			 * rs.getNString("DIACHI"); String GVQLCM = rs.getString("GVQLCM"); String maBM
-			 * = rs.getString("MABM");
-			 * 
-			 * System.out.println(maGV + " | " + hoTen + " | " + luong + " | " + phai +
-			 * " | " + ngSinh + " | " + diaChi + " | " + GVQLCM + " | " + maBM);
-			 * 
-			 * }
-			 * 
-			 * con.close();
-			 */
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}

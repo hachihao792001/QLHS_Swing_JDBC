@@ -2,9 +2,12 @@ package quanlyhocsinh;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.util.List;
+import java.util.ArrayList;
 import java.io.*;
 import javax.swing.*;
 import javax.swing.event.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 
@@ -23,14 +26,6 @@ public class MainScreen extends JFrame implements ActionListener {
 		JPanel mainContent = new JPanel(new GridBagLayout());
 		GridBagConstraints c;
 
-		/*
-		 * Object[][] data = { { 19120219, "Hà Chí Hào", 8.55, "hao.jpg", "địa chỉ 1",
-		 * "ghi chú 1" }, { 123, "Nguyễn Văn A", 7.6, "a.png", "địa chỉ 2", "ghi chú 2"
-		 * }, { 453, "Trần Thị B", 8.9, "b.jpg", "địa chỉ 3", "ghi chú 3" }, { 159,
-		 * "Nguyễn Anh C", 9.9, "c.png", "địa chỉ 4", "ghi chú 4" }, { 222, "Lê Mỹ D",
-		 * 9.6, "d.png", "địa chỉ 5", "ghi chú 5" } };
-		 */
-
 		dshsTable = new JTable(Main.danhSachHocSinh.toObjectMatrix(), columnNames);
 		dshsTable.setFillsViewportHeight(true);
 		dshsTable.setRowHeight(30);
@@ -39,19 +34,21 @@ public class MainScreen extends JFrame implements ActionListener {
 			public void editingStopped(ChangeEvent e) {
 				int selectedRow = dshsTable.getSelectedRow();
 				int selectedColumn = dshsTable.getSelectedColumn();
-				String oldMHS = Main.danhSachHocSinh.danhSach.get(selectedRow).maHocSinh;
+				String oldMHS = Main.danhSachHocSinh.getIndex(selectedRow).maHocSinh;
 				HocSinh editedHocSinh = Main.danhSachHocSinh.findHocSinh(oldMHS);
 
 				Object editedData = dshsTable.getValueAt(selectedRow, selectedColumn);
 				switch (selectedColumn) {
 				case 0:
 					if (!editedData.toString().equals(oldMHS)) {
-						if (Main.danhSachHocSinh.findHocSinh(editedData.toString()) == null)
-							editedHocSinh.maHocSinh = editedData.toString();
-						else {
+						if (editedData.toString().isEmpty()) {
+							UpdateDSHSTable();
+						} else if (Main.danhSachHocSinh.findHocSinh(editedData.toString()) != null) {
 							JOptionPane.showMessageDialog(mainContent, "Mã học sinh đã tồn tại", "Không thể cập nhật",
 									JOptionPane.WARNING_MESSAGE, null);
 							UpdateDSHSTable();
+						} else {
+							editedHocSinh.maHocSinh = editedData.toString();
 						}
 					}
 					break;
@@ -59,7 +56,13 @@ public class MainScreen extends JFrame implements ActionListener {
 					editedHocSinh.tenHocSinh = editedData.toString();
 					break;
 				case 2:
-					editedHocSinh.diem = Float.parseFloat(editedData.toString());
+					try {
+						editedHocSinh.diem = Float.parseFloat(editedData.toString());
+					} catch (NumberFormatException n) {
+						JOptionPane.showMessageDialog(mainContent, "Điểm phải là 1 số thập phân", "Không thể cập nhật",
+								JOptionPane.WARNING_MESSAGE, null);
+						UpdateDSHSTable();
+					}
 					break;
 				case 3:
 					editedHocSinh.hinhAnh = editedData.toString();
@@ -72,6 +75,7 @@ public class MainScreen extends JFrame implements ActionListener {
 					break;
 				}
 
+				Main.danhSachHocSinh.updateHocSinh(oldMHS, editedHocSinh);
 				DatabaseManager.updateHocSinh(oldMHS, editedHocSinh, selectedColumn);
 			}
 
@@ -218,16 +222,25 @@ public class MainScreen extends JFrame implements ActionListener {
 			break;
 		}
 		case "delete": {
-			if (dshsTable.getSelectedRow() != -1) {
-				HocSinh selectedHocSinh = Main.danhSachHocSinh
-						.findHocSinh(dshsTable.getValueAt(dshsTable.getSelectedRow(), 0).toString());
+			if (dshsTable.getSelectedRowCount() > 0) {
+				List<HocSinh> selectedHocSinhs = new ArrayList<HocSinh>();
+				String confirmDeleteMessage = "Bạn có chắc muốn xoá những học sinh sau: ";
 
-				int confirmDelete = JOptionPane.showConfirmDialog(this,
-						"Bạn có chắc muốn xoá học sinh " + selectedHocSinh.tenHocSinh + "?");
+				for (int selectedRow : dshsTable.getSelectedRows()) {
+					HocSinh currentSelectedHS = Main.danhSachHocSinh
+							.findHocSinh(dshsTable.getValueAt(selectedRow, 0).toString());
+					selectedHocSinhs.add(currentSelectedHS);
+					confirmDeleteMessage += currentSelectedHS.tenHocSinh + ", ";
+				}
+
+				confirmDeleteMessage = confirmDeleteMessage.substring(0, confirmDeleteMessage.length() - 2) + "?";
+				int confirmDelete = JOptionPane.showConfirmDialog(this, confirmDeleteMessage);
 				if (confirmDelete == JOptionPane.YES_OPTION) {
-					Main.danhSachHocSinh.removeHocSinh(selectedHocSinh.maHocSinh);
+					for (HocSinh selectedHocSinh : selectedHocSinhs) {
+						Main.danhSachHocSinh.removeHocSinh(selectedHocSinh.maHocSinh);
+					}
 					UpdateDSHSTable();
-					DatabaseManager.removeHocSinh(selectedHocSinh.maHocSinh);
+					DatabaseManager.setDSHS(Main.danhSachHocSinh);
 				}
 			}
 			break;
@@ -248,6 +261,7 @@ public class MainScreen extends JFrame implements ActionListener {
 		case "import": {
 			JFileChooser jfc = new JFileChooser();
 			jfc.setDialogTitle("Import danh sách học sinh từ file csv");
+			jfc.setFileFilter(new FileNameExtensionFilter("CSV files", "csv"));
 			jfc.showDialog(null, "Import");
 			jfc.setVisible(true);
 
@@ -260,15 +274,20 @@ public class MainScreen extends JFrame implements ActionListener {
 
 				String fileName = jfc.getSelectedFile().getAbsolutePath();
 				try {
-					if (choice == 0)
-						Main.danhSachHocSinh.merge(FileManager.importFromCSV(fileName));
-					else
-						Main.danhSachHocSinh = FileManager.importFromCSV(fileName);
+					try {
+						if (choice == 0)
+							Main.danhSachHocSinh.merge(FileManager.importFromCSV(fileName));
+						else
+							Main.danhSachHocSinh = FileManager.importFromCSV(fileName);
 
-					UpdateDSHSTable();
-					dshsTable.setRowSelectionInterval(0, 0);
-					DatabaseManager.setDSHS(Main.danhSachHocSinh);
-				} catch (IOException e1) {
+						UpdateDSHSTable();
+						dshsTable.setRowSelectionInterval(0, 0);
+						DatabaseManager.setDSHS(Main.danhSachHocSinh);
+					} catch (NullPointerException e1) {
+						JOptionPane.showMessageDialog(this, "File không đúng định dạng", "Lỗi import",
+								JOptionPane.ERROR_MESSAGE);
+					}
+				} catch (IOException e2) {
 
 				}
 			}
@@ -277,13 +296,18 @@ public class MainScreen extends JFrame implements ActionListener {
 		case "export": {
 			JFileChooser jfc = new JFileChooser();
 			jfc.setDialogTitle("Export danh sách học sinh ra 1 file csv");
+			jfc.setFileFilter(new FileNameExtensionFilter("CSV files", "csv"));
 			jfc.showSaveDialog(this);
 			jfc.setVisible(true);
 
 			if (jfc.getSelectedFile() != null) {
 				String fileName = jfc.getSelectedFile().getAbsolutePath();
+				if (!fileName.endsWith(".csv"))
+					fileName += ".csv";
 				try {
 					FileManager.exportToCSV(fileName, Main.danhSachHocSinh);
+					JOptionPane.showMessageDialog(this, "Export thành công!", "Thông báo",
+							JOptionPane.INFORMATION_MESSAGE);
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
